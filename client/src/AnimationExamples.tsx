@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 
-export function App() {
+export function AnimationExamples() {
   return (
     <>
       <svg width="600" height="600" style={{ border: "1px solid black" }}>
