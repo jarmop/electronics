@@ -54,8 +54,7 @@ export function SaltBridgeCell() {
             </msub>
           </math>
         </foreignObject>
-        <ZnOxidization />
-        <CopperReduction />
+        <Animation />
       </svg>
     </>
   );
@@ -230,59 +229,22 @@ function SulfateIon(
   );
 }
 
-function ZnOxidization() {
-  const electronsRef = React.useRef<SVGGElement>(null);
-  const zincIonRef = React.useRef<SVGGElement>(null);
-  let initialized = false;
-
-  React.useEffect(() => {
-    if (!initialized && electronsRef.current && zincIonRef.current) {
-      const electronsElement = electronsRef.current;
-      const zincIonElement = zincIonRef.current;
-
-      electronsElement.animate(
-        { opacity: [1, 1], translate: "0 -120px" },
-        1600,
-      );
-
-      zincIonElement.animate(
-        { opacity: [1, 1, 1, 0], translate: "70px 70px", easing: "ease-out" },
-        2000,
-      );
-
-      initialized = true;
-    }
-  }, []);
-
-  return (
-    <>
-      <Electrons
-        ref={electronsRef}
-        x={140}
-        y={280}
-      />
-      <ZincIon
-        ref={zincIonRef}
-        x={140}
-        y={280}
-      />
-    </>
-  );
-}
-
-function CopperReduction() {
+function Animation() {
   const copperAtomRef = React.useRef<SVGGElement>(null);
   const copperIonRef = React.useRef<SVGGElement>(null);
   const sulfateRef = React.useRef<SVGForeignObjectElement>(null);
-  const electronsRef = React.useRef<SVGGElement>(null);
-
+  const copperElectronsRef = React.useRef<SVGGElement>(null);
+  const zincElectronsRef = React.useRef<SVGGElement>(null);
+  const zincIonRef = React.useRef<SVGGElement>(null);
   let initialized = false;
 
   async function animate() {
     if (
       initialized ||
+      !zincElectronsRef.current ||
+      !zincIonRef.current ||
       !copperAtomRef.current ||
-      !electronsRef.current ||
+      !copperElectronsRef.current ||
       !sulfateRef.current ||
       !copperIonRef.current
     ) {
@@ -290,13 +252,27 @@ function CopperReduction() {
     }
 
     initialized = true;
-    const electronsElement = electronsRef.current;
+    const zincElectronsElement = zincElectronsRef.current;
+    const zincIonElement = zincIonRef.current;
+    const copperElectronsElement = copperElectronsRef.current;
     const copperAtomElement = copperAtomRef.current;
     const copperIonElement = copperIonRef.current;
     const sulfateElement = sulfateRef.current;
 
+    function scene0() {
+      zincElectronsElement.animate(
+        { opacity: [1, 1], translate: "0 -120px" },
+        1600,
+      );
+
+      return zincIonElement.animate(
+        { opacity: [1, 1, 1, 0], translate: "70px 70px", easing: "ease-out" },
+        2000,
+      ).finished;
+    }
+
     function scene1() {
-      return electronsElement.animate(
+      return copperElectronsElement.animate(
         {
           translate: ["0 -120px", "0 0"],
           opacity: [1, 1],
@@ -307,7 +283,7 @@ function CopperReduction() {
     }
 
     function scene2() {
-      electronsElement.animate(
+      copperElectronsElement.animate(
         { opacity: [1, 0], easing: "ease-out" },
         2000,
       );
@@ -315,9 +291,9 @@ function CopperReduction() {
         { opacity: [1, 1, 0], translate: "-50px 0" },
         2000,
       );
-      copperIonElement.style = "opacity: 1";
       return copperIonElement.animate(
         {
+          opacity: [1, 1],
           translate: ["-70px 60px", "0 0"],
           easing: "ease-out",
         },
@@ -326,25 +302,19 @@ function CopperReduction() {
     }
 
     function scene3() {
-      electronsElement.style = "display: none";
       copperIonElement.animate(
         {
           opacity: [1, 0],
         },
         2000,
-      ).finished.then(() => copperIonElement.style = "opacity: 0");
+      );
       copperAtomElement.animate(
         { opacity: [0, 1, 0], easing: "ease-out" },
         3000,
-      )
-        .finished.then(
-          () => {
-            copperAtomElement.style = "display: none";
-          },
-        );
+      );
     }
 
-    // scene1().then(scene2).then(scene3);
+    await scene0();
     await scene1();
     await scene2();
     await scene3();
@@ -356,7 +326,9 @@ function CopperReduction() {
 
   return (
     <>
-      <Electrons x={510} y={280} ref={electronsRef} />
+      <Electrons ref={zincElectronsRef} x={140} y={280} />
+      <ZincIon ref={zincIonRef} x={140} y={280} />
+      <Electrons x={510} y={280} ref={copperElectronsRef} />
       {/* <CopperIon x={440} y={340} ref={copperIonRef} /> */}
       <SulfateIon x={430} y={330} ref={sulfateRef} />
       <CopperIon x={510} y={280} ref={copperIonRef} />
