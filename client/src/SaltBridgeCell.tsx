@@ -4,6 +4,7 @@ import "./App.css";
 const width = 800;
 const height = 600;
 const copperColor = "#B87333";
+const zincColor = "grey";
 
 export function SaltBridgeCell() {
   return (
@@ -23,13 +24,13 @@ export function SaltBridgeCell() {
           stroke="lightgrey"
           strokeWidth={40}
         />
-        <rect x="120" y="80" width={40} height={300} fill="grey" />
+        <rect x="120" y="80" width={40} height={300} fill={zincColor} />
         <rect x="490" y="80" width={40} height={300} fill={copperColor} />
         <rect x="120" y="40" width={410} height={40} fill="black" />
         <foreignObject
           x="250"
           y="376"
-          width="50"
+          width="500"
           height="25"
         >
           <math>
@@ -77,15 +78,17 @@ function Cup({ x, fill = "lightblue" }: { x: string; fill?: string }) {
 }
 
 function Electrons(
-  { x, y, svgAnimation }: {
+  { ref, x, y }: {
     x: number;
     y: number;
-    svgAnimation?: React.ReactNode;
+    ref: React.RefObject<SVGGElement | null>;
   },
 ) {
   return (
     <g
+      ref={ref}
       transform={`translate(${x},${y})`}
+      style={{ opacity: 0 }}
     >
       <circle r={14} fill="white" stroke="black"></circle>
       <foreignObject
@@ -107,63 +110,41 @@ function Electrons(
           </msup>
         </math>
       </foreignObject>
-      {svgAnimation}
     </g>
   );
 }
 
-function CopperAtom({ ref }: { ref: React.RefObject<SVGGElement | null> }) {
+function CopperAtom(
+  { x, y, ref }: {
+    x: number;
+    y: number;
+    ref: React.RefObject<SVGGElement | null>;
+  },
+) {
   return (
     <g
-      transform="translate(510,340)"
-      // onAnimationEnd={() => {
-      //   console.log("CopperAtom animation ended");
-      // }}
+      transform={`translate(${x},${y})`}
       ref={ref}
-      style={{ fontSize: 14, fontWeight: "bold" }}
+      style={{ fontSize: 14, fontWeight: "bold", opacity: 0 }}
     >
-      <circle r={14} fill={copperColor} stroke="black"></circle>
-      <foreignObject
-        x={-10}
-        y={-9}
-        width="50"
-        height="25"
-      >
-        Cu
-      </foreignObject>
+      <circle r={18} fill={copperColor} stroke="black"></circle>
+      <text x={-10} y={4}>Cu</text>
     </g>
   );
 }
 
 function CopperIon(
-  { x, y, cssAnimation }: {
+  { x, y, ref }: {
     x: number;
     y: number;
-    cssAnimation: React.CSSProperties;
+    ref: React.RefObject<SVGGElement | null>;
   },
 ) {
-  const domRef = React.useRef<SVGGElement>(null);
-
-  React.useEffect(() => {
-    console.log("tyj");
-    if (domRef.current) {
-      const keyframes = [
-        { opacity: 1 }, // from
-        { opacity: 0 }, // to
-      ];
-      const options = {
-        duration: 2000,
-        iterations: 1,
-      };
-
-      domRef.current.animate(keyframes, options);
-    }
-  });
-
   return (
     <g
-      transform={`translate(510,340)`}
-      ref={domRef}
+      transform={`translate(${x},${y})`}
+      style={{ opacity: 0 }}
+      ref={ref}
     >
       <circle r={18} fill={copperColor} stroke="black"></circle>
       <foreignObject
@@ -185,62 +166,201 @@ function CopperIon(
   );
 }
 
-function ZnOxidization() {
+function ZincIon(
+  { x, y, ref }: {
+    x: number;
+    y: number;
+    ref: React.RefObject<SVGGElement | null>;
+  },
+) {
   return (
-    <Electrons
-      x={140}
-      y={340}
-      svgAnimation={
-        <animateMotion
-          dur="8s"
-          repeatCount="1"
-          path="M0,0 v-280 h370 v280"
-        />
-      }
-    />
+    <g
+      transform={`translate(${x},${y})`}
+      style={{ opacity: 0 }}
+      ref={ref}
+    >
+      <circle r={18} fill={zincColor} stroke="black"></circle>
+      <foreignObject
+        x={-14}
+        y={-10}
+        width="50"
+        height="25"
+      >
+        <math
+          style={{ fontSize: 14, fontWeight: "bold" }}
+        >
+          <msup>
+            <mi>Zn</mi>
+            <mi>2+</mi>
+          </msup>
+        </math>
+      </foreignObject>
+    </g>
+  );
+}
+
+function SulfateIon(
+  { x, y, ref }: {
+    x: number;
+    y: number;
+    ref: React.RefObject<SVGForeignObjectElement | null>;
+  },
+) {
+  return (
+    <foreignObject
+      transform={`translate(${x},${y})`}
+      style={{ opacity: 0, color: "white" }}
+      ref={ref}
+      width="50"
+      height="25"
+    >
+      <math
+        style={{
+          fontSize: 14,
+          fontWeight: "bold",
+        }}
+      >
+        <msubsup>
+          <mi>SO</mi>
+          <mi>4</mi>
+          <mi>2-</mi>
+        </msubsup>
+      </math>
+    </foreignObject>
+  );
+}
+
+function ZnOxidization() {
+  const electronsRef = React.useRef<SVGGElement>(null);
+  const zincIonRef = React.useRef<SVGGElement>(null);
+  let initialized = false;
+
+  React.useEffect(() => {
+    if (!initialized && electronsRef.current && zincIonRef.current) {
+      const electronsElement = electronsRef.current;
+      const zincIonElement = zincIonRef.current;
+
+      electronsElement.animate(
+        { opacity: [1, 1], translate: "0 -120px" },
+        1600,
+      );
+
+      zincIonElement.animate(
+        { opacity: [1, 1, 1, 0], translate: "70px 70px", easing: "ease-out" },
+        2000,
+      );
+
+      initialized = true;
+    }
+  }, []);
+
+  return (
+    <>
+      <Electrons
+        ref={electronsRef}
+        x={140}
+        y={280}
+      />
+      <ZincIon
+        ref={zincIonRef}
+        x={140}
+        y={280}
+      />
+    </>
   );
 }
 
 function CopperReduction() {
   const copperAtomRef = React.useRef<SVGGElement>(null);
+  const copperIonRef = React.useRef<SVGGElement>(null);
+  const sulfateRef = React.useRef<SVGForeignObjectElement>(null);
+  const electronsRef = React.useRef<SVGGElement>(null);
 
   let initialized = false;
 
-  React.useEffect(() => {
-    if (!initialized && copperAtomRef.current) {
-      const keyframes = [
-        { opacity: 1 }, // from
-        { opacity: 0 }, // to
-      ];
-      const options = {
-        duration: 1500,
-        iterations: 1,
-      };
-
-      const animation = copperAtomRef.current.animate(keyframes, options);
-
-      animation.onfinish = () => {
-        console.log("rth");
-      };
-
-      initialized = true;
+  async function animate() {
+    if (
+      initialized ||
+      !copperAtomRef.current ||
+      !electronsRef.current ||
+      !sulfateRef.current ||
+      !copperIonRef.current
+    ) {
+      return;
     }
-  });
+
+    initialized = true;
+    const electronsElement = electronsRef.current;
+    const copperAtomElement = copperAtomRef.current;
+    const copperIonElement = copperIonRef.current;
+    const sulfateElement = sulfateRef.current;
+
+    function scene1() {
+      return electronsElement.animate(
+        {
+          translate: ["0 -120px", "0 0"],
+          opacity: [1, 1],
+          easing: "ease-out",
+        },
+        2000,
+      ).finished;
+    }
+
+    function scene2() {
+      electronsElement.animate(
+        { opacity: [1, 0], easing: "ease-out" },
+        2000,
+      );
+      sulfateElement.animate(
+        { opacity: [1, 1, 0], translate: "-50px 0" },
+        2000,
+      );
+      copperIonElement.style = "opacity: 1";
+      return copperIonElement.animate(
+        {
+          translate: ["-70px 60px", "0 0"],
+          easing: "ease-out",
+        },
+        2000,
+      ).finished;
+    }
+
+    function scene3() {
+      electronsElement.style = "display: none";
+      copperIonElement.animate(
+        {
+          opacity: [1, 0],
+        },
+        2000,
+      ).finished.then(() => copperIonElement.style = "opacity: 0");
+      copperAtomElement.animate(
+        { opacity: [0, 1, 0], easing: "ease-out" },
+        3000,
+      )
+        .finished.then(
+          () => {
+            copperAtomElement.style = "display: none";
+          },
+        );
+    }
+
+    // scene1().then(scene2).then(scene3);
+    await scene1();
+    await scene2();
+    await scene3();
+  }
+
+  React.useEffect(() => {
+    animate();
+  }, []);
 
   return (
     <>
-      <CopperAtom ref={copperAtomRef} />
-      <Electrons
-        x={240}
-        y={340}
-        svgAnimation={
-          <animateMotion
-            dur="8s"
-            repeatCount="1"
-            path="M0,0 v-280 h370 v280"
-          />
-        }
-      />
+      <Electrons x={510} y={280} ref={electronsRef} />
+      {/* <CopperIon x={440} y={340} ref={copperIonRef} /> */}
+      <SulfateIon x={430} y={330} ref={sulfateRef} />
+      <CopperIon x={510} y={280} ref={copperIonRef} />
+      <CopperAtom x={510} y={280} ref={copperAtomRef} />
     </>
   );
 }
